@@ -10,9 +10,3 @@ script:
 
 deploy:
   provider: docker
-  host: $HOST
-  user: $USER
-  password:
-      secure: "$PASSWORD"
-  database: $DATABASE
-
