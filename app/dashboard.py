@@ -1,3 +1,5 @@
+import os
+
 import dash
 from dash import dcc
 from dash import html
@@ -10,6 +12,10 @@ import datetime
 #
 # connection = mysql.connector.connect(host=credential.host, database=credential.database, user=credential.user,
 #                                      password=credential.password)
+host = os.getenv($HOST)
+database = os.getenv($DATABASE)
+user = os.getenv($USER)
+password = os.getenv($PASSWORD)
 connection = mysql.connector.connect(host=host, database=database, user=user,
                                      password=password)
 
