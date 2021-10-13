@@ -8,20 +8,20 @@ before_install:
   - docker build -t dashboard_hua_eval -f Dockerfile.dev .
 
 script:
-  - python dashboard.py test
+  - python dashboard.py
 
-deploy:
-  provider: heroku
-  api_key:
-    host:
-      secure: $HOST
-    database:
-      secure: $DATABASE
-    password:
-      secure: $PASSWORD
-    user:
-      secure: $USER
-  on:
-    branch: master
+#deploy:
+#  provider: heroku
+#  api_key:
+#    host:
+#      secure: $HOST
+#    database:
+#      secure: $DATABASE
+#    password:
+#      secure: $PASSWORD
+#    user:
+#      secure: $USER
+#  on:
+#    branch: master
 
 
