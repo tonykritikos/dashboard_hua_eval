@@ -10,8 +10,8 @@ import datetime
 
 # connection = mysql.connector.connect(host=credential.host, database=credential.database, user=credential.user,
 #                                      password=credential.password)
-connection = mysql.connector.connect(host=$HOST, database=$DATABASE, user=$USER,
-                                     password=$PASSWORD)
+connection = mysql.connector.connect(host="$HOST", database="$DATABASE", user="$USER",
+                                     password="$PASSWORD")
 
 
 def sql_query(command):
