@@ -7,3 +7,12 @@ before_install:
 
 script:
   - docker run tonykritikos/dashboard_hua_eval
+
+deploy:
+  provider: docker
+  host: $HOST
+  user: $USER
+  password:
+      secure: "$PASSWORD"
+  database: $DATABASE
+
