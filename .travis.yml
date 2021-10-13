@@ -6,8 +6,4 @@ before_install:
   - docker build -t dashboard_hua_eval -f Dockerfile.dev .
 
 script:
-  - import password=$PASSWORD
-  - import user=$USER
-  - import database=$DATABASE
-  - import host=$HOST
   - docker run dashboard_hua_eval
