@@ -3,10 +3,10 @@ services:
   - docker
 
 before_install:
-  - docker build -t tonykritikos/dashboard_hua_eval -f Dockerfile.dev .
+  - docker build -t dashboard_hua_eval -f Dockerfile.dev .
 
 script:
-  - docker run tonykritikos/dashboard_hua_eval
+  - docker run dashboard_hua_eval
 
 deploy:
   provider: docker
