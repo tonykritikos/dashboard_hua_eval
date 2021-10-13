@@ -8,7 +8,7 @@ before_install:
   - docker build -t dashboard_hua_eval -f Dockerfile.dev .
 
 script:
-  - python dashboard.py
+  - docker run dashboard_hua_eval
 
 #deploy:
 #  provider: heroku
