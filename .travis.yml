@@ -6,4 +6,9 @@ before_install:
   - docker build -t dashboard_hua_eval -f Dockerfile.dev .
 
 script:
-  - docker run dashboard_hua_eval
+  - export host=$HOST
+  - export database=$DATABASE
+  - export password=$PASSWORD
+  - export user=$USER
+  - python dashboard.py test
+
