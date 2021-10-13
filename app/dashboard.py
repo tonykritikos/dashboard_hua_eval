@@ -10,13 +10,13 @@ import datetime
 #
 # connection = mysql.connector.connect(host=credential.host, database=credential.database, user=credential.user,
 #                                      password=credential.password)
-host = input()
+host = input("Provide the host: ")
 # print(host)
-database = input()
+database = input("Provide the database: ")
 # print(database)
-user = input()
-print(user)
-password = input()
+user = input("Provide the user: ")
+# print(user)
+password = input("Provide the password: ")
 # print(password)
 connection = mysql.connector.connect(host=host, database=database, user=user,
                                      password=password)
