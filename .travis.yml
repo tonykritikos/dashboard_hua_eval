@@ -4,8 +4,8 @@ python:
   - "3.9"
 
 before_install:
-  - docker build -t dashboard_hua_eval -f Dockerfile.dev .
-
+  - docker build -t dashboard_hua_eval -f /Dockerfile.dev .
+  - python /dashboard.py
 #script:
 #  - docker run dashboard_hua_eval
 
