@@ -3,7 +3,11 @@ language: python
 python:
   - "3.9"
 
+cache:
+  - pip
+
 before_install:
+  - pip install -r requirements.txt
   - docker build -t dashboard_hua_eval -f Dockerfile.dev .
 #
 #script:
