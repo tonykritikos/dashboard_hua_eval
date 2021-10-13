@@ -2,10 +2,10 @@ sudo: required
 language: python
 python:
   - "3.9"
-#
-#before_install:
-#  - docker build -t dashboard_hua_eval -f Dockerfile.dev .
-#
+
+before_install:
+  - docker build -t dashboard_hua_eval -f Dockerfile.dev .
+
 #script:
 #  - docker run dashboard_hua_eval
 
