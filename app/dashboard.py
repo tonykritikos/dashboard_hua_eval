@@ -6,20 +6,14 @@ import mysql.connector
 import pandas as pd
 import plotly.express as px
 import datetime
+
 # from credentials import credential
 #
 # connection = mysql.connector.connect(host=credential.host, database=credential.database, user=credential.user,
 #                                      password=credential.password)
-host = input("Provide the host: ")
-# print(host)
-database = input("Provide the database: ")
-# print(database)
-user = input("Provide the user: ")
-# print(user)
-password = input("Provide the password: ")
-# print(password)
-connection = mysql.connector.connect(host=host, database=database, user=user,
-                                     password=password)
+
+connection = mysql.connector.connect(host=input("Provide the host: "), database=input("Provide the database: "),
+                                     user=input("Provide the user: "), password=input("Provide the password: "))
 
 
 def sql_query(command):
@@ -149,7 +143,7 @@ def update_data(courseid, syear):
     barchart14 = px.bar(dff, x="q12_materialcovered", title="q12_materialcovered")
     barchart15 = px.bar(dff, x="q13_tutororganised", title="q13_tutororganised")
     barchart16 = px.bar(dff, x="q14_evaluationcriteria", title="q14_evaluationcriteria")
-    return piechart1, piechart2, piechart3, barchart4, barchart5, barchart6, barchart7, barchart8, barchart9,\
+    return piechart1, piechart2, piechart3, barchart4, barchart5, barchart6, barchart7, barchart8, barchart9, \
            barchart10, barchart11, piechart12, barchart13, barchart14, barchart15, barchart16
 
 
