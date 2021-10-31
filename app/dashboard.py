@@ -5,7 +5,10 @@ from dash import dash_table
 import mysql.connector
 import pandas as pd
 import plotly.express as px
-import datetime
+import config
+import numpy as np
+import warnings
+
 
 from credentials import credential
 
@@ -26,36 +29,24 @@ def sql_query(command):
 
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+a = np.array([np.NaN, np.NaN])
+b = np.array([np.NaN, np.NaN, 3])
 
-columns = ['qid', 'qlastpage', 'q1_attendslectures', 'q2_coursehaslabs', 'q2b_attendslabs',
-           'q3_cleargoalslectures', 'q4_cleargoalslabs', 'q5_studymaterial',
-           'q6_tutorinteresting',
-           'q7_tutorquestions', 'q8_tutorreachable', 'q9_tutorexplains',
-           'q10_tutorontime', 'q11_hasassistant', 'q11b_assistanthelps',
-           'q12_materialcovered',
-           'q13_tutororganised', 'q14_evaluationcriteria', 'opencomments', 'courseid',
-           'qyear', 'qseason']
-median_columns = ['q3_cleargoalslectures', 'q4_cleargoalslabs', 'q5_studymaterial',
-                  'q6_tutorinteresting',
-                  'q7_tutorquestions', 'q8_tutorreachable', 'q9_tutorexplains',
-                  'q10_tutorontime', 'q11b_assistanthelps',
-                  'q12_materialcovered',
-                  'q13_tutororganised', 'q14_evaluationcriteria']
-median_df_columns = ['q3_cleargoalslectures', 'q4_cleargoalslabs', 'q5_studymaterial',
-                     'q6_tutorinteresting',
-                     'q7_tutorquestions', 'q8_tutorreachable', 'q9_tutorexplains',
-                     'q10_tutorontime', 'q11b_assistanthelps',
-                     'q12_materialcovered',
-                     'q13_tutororganised', 'q14_evaluationcriteria', 'qyear']
+with warnings.catch_warnings():
+    warnings.filterwarnings('error')
+    try:
+        x=np.nanmean(a)
+    except RuntimeWarning:
+        x=np.NaN
+print(x)
 
-df = pd.DataFrame(sql_query('select * from evaluation as unp;'), columns=columns)
+df = pd.DataFrame(sql_query('select * from evaluation as unp;'), columns=config.columns)
 courses = sql_query('select coursename, courseid from courses as unp;')
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.scripts.config.serve_locally = True
 app.config['suppress_callback_exceptions'] = True
 
-year = int((datetime.datetime.now().strftime('%Y')))
 
 app.layout = html.Div([
 
@@ -75,7 +66,7 @@ app.layout = html.Div([
     dcc.Dropdown(
         id='year-dropdown',
         options=[
-            {'label': i, 'value': i} for i in range(1990, year + 1)
+            {'label': i, 'value': i} for i in range(1990, config.year + 1)
         ],
         value=2016,
         multi=False,
@@ -112,7 +103,7 @@ app.layout = html.Div([
             dcc.Dropdown(
                 id='median-column',
                 options=[
-                    {'label': i, 'value': i} for i in median_columns
+                    {'label': i, 'value': i} for i in config.median_columns
                 ],
                 value="q3_cleargoalslectures",
                 multi=False,
@@ -133,8 +124,7 @@ app.layout = html.Div([
 
     dash_table.DataTable(
         id='rank-table',
-        columns=[{"name": 'Rank', "id": 'Rank'}, {"name": 'Course', "id": 'courseid'},
-                 {"name": 'Median', "id": 'median'}],
+        columns=[{"name": 'Course', "id": 'courseid'}, {"name": 'Mean', "id": 'Mean'}],
         style_cell=dict(textAlign='left'),
         style_header=dict(backgroundColor="paleturquoise"),
         style_data=dict(backgroundColor="lavender")
@@ -184,8 +174,8 @@ def update_data(courseid, median_column, syear):
     barchart15 = px.bar(dff, x="q13_tutororganised", title="Είναι οργανωμένος/η")
     barchart16 = px.bar(dff, x="q14_evaluationcriteria", title="Κριτήρια αξιολόγησης")
 
-    median_df = df[(df['courseid'] == courseid)]
-    barchart17 = px.line(median_df[median_df_columns].groupby(['qyear']).median(), y=median_column,
+    mean_df = df[(df['courseid'] == courseid)]
+    barchart17 = px.line(mean_df[config.median_columns_plus_year].groupby(['qyear']).mean(), y=median_column,
                          title="Μέσος όρος ανά χρονιά")
 
     return piechart1, piechart2, piechart3, barchart4, barchart5, barchart6, barchart7, barchart8, barchart9, \
@@ -193,21 +183,25 @@ def update_data(courseid, median_column, syear):
 
 
 @app.callback(
-    dash.dependencies.Output('rank-table', 'data'),
     dash.dependencies.Output('datatable', 'data'),
     [dash.dependencies.Input('course-dropdown', 'value'),
      dash.dependencies.Input('year-dropdown', 'value')])
-def data_tables(courseid, syear):
+def comment_table(courseid, syear):
     data_df = df[(df['courseid'] == courseid) & (df['qyear'] == syear)]
-    #####
-    year_medians = df[(df['qyear' == syear])]
-    print(year_medians.head())
-    print(year_medians.groupby(['courseid']).median)
-    #######
-    return data_df.dropna(subset=['opencomments']).to_dict('records'), year_medians.groupby(['courseid']).median.to_dict('records')
+    return data_df.dropna(subset=['opencomments']).to_dict('records')
+
+
+@app.callback(
+    dash.dependencies.Output('rank-table', 'data'),
+    [dash.dependencies.Input('year-dropdown', 'value')])
+def year_list(syear):
+    year_medians = df[(df['qyear'] == syear)]
+    year_medians['Mean'] = year_medians.loc[:, config.median_columns].mean(axis=1, skipna=True)
+    print(year_medians.groupby(['courseid']).mean().sort_values('Mean', ascending=False))
+    return year_medians.groupby(['courseid']).mean().sort_values('Mean', ascending=False).to_dict('records')
 
 
 connection.close()
 
 if __name__ == '__main__':
-    app.run_server(host='0.0.0.0', port=8050, debug=True)
+    app.run_server(host='127.0.0.1', port=8050, debug=True)
