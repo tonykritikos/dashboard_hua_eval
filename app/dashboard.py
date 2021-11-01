@@ -8,6 +8,8 @@ import plotly.express as px
 import config
 import numpy as np
 import warnings
+from plotly.graph_objects import Layout
+from plotly.validator_cache import ValidatorCache
 
 from credentials import credential
 
@@ -18,7 +20,7 @@ connection = mysql.connector.connect(host=credential.host, database=credential.d
 # connection = mysql.connector.connect(host=input("Provide the host: "), database=input("Provide the database: "),
 #                                      user=input("Provide the user: "), password=input("Provide the password: "))
 
-
+# Query that runs the scripts to take the courses and the data
 def sql_query(command):
     cursor = connection.cursor()
     cursor.execute(command)
@@ -27,7 +29,7 @@ def sql_query(command):
     return dt
 
 
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+# Start of block  that suppresses errors
 a = np.array([np.NaN, np.NaN])
 b = np.array([np.NaN, np.NaN, 3])
 
@@ -38,22 +40,28 @@ with warnings.catch_warnings():
     except RuntimeWarning:
         x = np.NaN
 print(x)
+pd.options.mode.chained_assignment = None  # default='warn'
+# End of block that suppresses errors
 
-df = pd.DataFrame(sql_query('select * from evaluation as unp;'), columns=config.columns)
-courses = sql_query('select coursename, courseid from courses as unp;')
+df = pd.DataFrame(sql_query('select * from evaluation as unp;'), columns=config.columns)  # Main dataframe call
+courses = sql_query('select coursename, courseid from courses as unp;')  # Courses
 
+# Start of styling and configuration block
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.scripts.config.serve_locally = True
 app.config['suppress_callback_exceptions'] = True
+# End of styling and configuration block
 
+# Start of the main layout app
 app.layout = html.Div([
 
     dcc.Dropdown(
-        id='course-dropdown',
+        id='course-dropdown',  # Main dropdown - Courses
         options=[
             {'label': i, 'value': y} for i, y in courses
         ],
-        value=8,
+        value=8,  # Assigned default value so when it loads it instantly shows data
         multi=False,
         clearable=False,
         style={'width': '80%'}
@@ -62,11 +70,11 @@ app.layout = html.Div([
     html.Div(id='course-dropdown-output'),
 
     dcc.Dropdown(
-        id='year-dropdown',
+        id='year-dropdown',  # Main dropdown - Year
         options=[
             {'label': i, 'value': i} for i in range(1990, config.year + 1)
-        ],
-        value=2016,
+        ],  # The range of the years is HUA established year (1990) to current year
+        value=2016,  # Assigned default value so when it loads it instantly shows data
         multi=False,
         clearable=False,
         style={'width': '80%'}
@@ -75,23 +83,24 @@ app.layout = html.Div([
     html.Div(id='year-dropdown-output'),
 
     dcc.Tabs([
-        dcc.Tab(children=[
+        dcc.Tab(children=[  # First tab - Student
             dcc.Graph(id='graph-q1_attendslectures', style={'width': '50%'}),
             dcc.Graph(id='graph-q2b_attendslabs', style={'width': '50%'}),
             dcc.Graph(id='graph-q14_evaluationcriteria', style={'width': '50%'}),
             dash_table.DataTable(
                 id='datatable',
-                columns=[{"name": 'opencomments', "id": 'opencomments'}]
+                columns=[{"name": 'opencomments', "id": 'opencomments'}],
+                style_table={'width': '50%'}
             )
         ], id='tab1', label='Φοιτητής'),
-        dcc.Tab(children=[
+        dcc.Tab(children=[  # Second tab - Lesson
             dcc.Graph(id='graph-q2_coursehaslabs', style={'width': '50%'}),
             dcc.Graph(id='graph-q3_cleargoalslectures', style={'width': '50%'}),
             dcc.Graph(id='graph-q4_cleargoalslabs', style={'width': '50%'}),
             dcc.Graph(id='graph-q5_studymaterial', style={'width': '50%'}),
             dcc.Graph(id='graph-q12_materialcovered', style={'width': '50%'})
         ], id='tab2', label='Μάθημα'),
-        dcc.Tab(children=[
+        dcc.Tab(children=[  # Third tab - Professor and tutor
             dcc.Graph(id='graph-q6_tutorinteresting', style={'width': '50%'}),
             dcc.Graph(id='graph-q7_tutorquestions', style={'width': '50%'}),
             dcc.Graph(id='graph-q8_tutorreachable', style={'width': '50%'}),
@@ -101,13 +110,13 @@ app.layout = html.Div([
             dcc.Graph(id='graph-q11b_assistanthelps', style={'width': '50%'}),
             dcc.Graph(id='graph-q13_tutororganised', style={'width': '50%'})
         ], id='tab3', label='Καθηγητής'),
-        dcc.Tab(children=[
+        dcc.Tab(children=[  # Fourth tab - Average score per numeric column for the selected lesson through the years
             dcc.Dropdown(
-                id='median-column',
+                id='median-column',  # Inner dropdown - Select column to show the average score
                 options=[
-                    {'label': i, 'value': i} for i in config.median_columns
+                    {'label': i, 'value': y} for i, y in config.dict_mean_columns
                 ],
-                value="q3_cleargoalslectures",
+                value="q3_cleargoalslectures",  # Assigned default value so when it loads it instantly shows data
                 multi=False,
                 clearable=False,
                 style={'width': '80%'}
@@ -116,7 +125,7 @@ app.layout = html.Div([
             dcc.Graph(id='graph-median', style={'width': '50%'})
         ], id='tab4', label='Πορεία μαθήματος'),
 
-        dcc.Tab(children=[
+        dcc.Tab(children=[  # Fifth tab - List of average overall score of each lesson, ranked most to least
             dash_table.DataTable(
                 id='year-rank-table',
                 columns=[{'name': 'Course', 'id': 'courseid'}, {'name': 'Mean', 'id': 'Mean'}],
@@ -133,11 +142,38 @@ app.layout = html.Div([
 
 @app.callback(
     dash.dependencies.Output('graph-q1_attendslectures', 'figure'),
-    dash.dependencies.Output('graph-q2_coursehaslabs', 'figure'),
     dash.dependencies.Output('graph-q2b_attendslabs', 'figure'),
+    dash.dependencies.Output('graph-q14_evaluationcriteria', 'figure'),
+    dash.dependencies.Output('datatable', 'data'),
+    [dash.dependencies.Input('course-dropdown', 'value'),
+     dash.dependencies.Input('year-dropdown', 'value')])
+def first_tab(courseid, syear):
+    first_tab_df = df[(df['courseid'] == courseid) & (df['qyear'] == syear)]
+    piechart1 = px.pie(first_tab_df.dropna(subset=['q1_attendslectures']), names='q1_attendslectures', hole=.0, title='Παρακολούθησαν το μάθημα')
+    piechart2 = px.pie(first_tab_df.dropna(subset=['q2b_attendslabs']), names='q2b_attendslabs', hole=.0, title='Παρακολουθεί τα εργαστήρια')
+    barchart = px.bar(first_tab_df['q14_evaluationcriteria'], title="Κριτήρια αξιολόγησης",labels={"value": "Βαθμολογία", "count": "Καταμέτρηση"},range_x=config.range, height=config.height, width=config.width, barmode='relative')
+    return piechart1, piechart2, barchart, first_tab_df.dropna(subset=['opencomments']).to_dict('records')
+
+
+@app.callback(
+    dash.dependencies.Output('graph-q2_coursehaslabs', 'figure'),
     dash.dependencies.Output('graph-q3_cleargoalslectures', 'figure'),
     dash.dependencies.Output('graph-q4_cleargoalslabs', 'figure'),
     dash.dependencies.Output('graph-q5_studymaterial', 'figure'),
+    dash.dependencies.Output('graph-q12_materialcovered', 'figure'),
+    [dash.dependencies.Input('course-dropdown', 'value'),
+     dash.dependencies.Input('year-dropdown', 'value')])
+def second_tab(courseid, syear):
+    second_tab_df = df[(df['courseid'] == courseid) & (df['qyear'] == syear)]
+    piechart = px.pie(second_tab_df.dropna(subset=['q2_coursehaslabs']), names='q2_coursehaslabs', hole=.0, title='Έχει το μάθημα εργαστήρια')
+    barchart1 = px.bar(second_tab_df, x="q3_cleargoalslectures", title="Επιτυγχάνει τους στόχους στις διαλέξεις")
+    barchart2 = px.bar(second_tab_df, x="q4_cleargoalslabs", title="Επιτυγχάνει τους στόχους στα εργαστήρια")
+    barchart3 = px.bar(second_tab_df, x="q5_studymaterial", title="Υλικό μαθήματος")
+    barchart4 = px.bar(second_tab_df, x="q12_materialcovered", title="Καλύπτεται το υλικό")
+    return piechart, barchart1, barchart2, barchart3, barchart4
+
+
+@app.callback(
     dash.dependencies.Output('graph-q6_tutorinteresting', 'figure'),
     dash.dependencies.Output('graph-q7_tutorquestions', 'figure'),
     dash.dependencies.Output('graph-q8_tutorreachable', 'figure'),
@@ -145,60 +181,43 @@ app.layout = html.Div([
     dash.dependencies.Output('graph-q10_tutorontime', 'figure'),
     dash.dependencies.Output('graph-q11_hasassistant', 'figure'),
     dash.dependencies.Output('graph-q11b_assistanthelps', 'figure'),
-    dash.dependencies.Output('graph-q12_materialcovered', 'figure'),
     dash.dependencies.Output('graph-q13_tutororganised', 'figure'),
-    dash.dependencies.Output('graph-q14_evaluationcriteria', 'figure'),
-    dash.dependencies.Output('graph-median', 'figure'),
     [dash.dependencies.Input('course-dropdown', 'value'),
-     dash.dependencies.Input('median-column', 'value'),
      dash.dependencies.Input('year-dropdown', 'value')])
-def update_data(courseid, median_column, syear):
-    dff = df[(df['courseid'] == courseid) & (df['qyear'] == syear)]
-    piechart1 = px.pie(dff, names='q1_attendslectures', hole=.0, title='Παρακολούθησαν το μάθημα')
-    piechart2 = px.pie(dff, names='q2_coursehaslabs', hole=.0, title='Έχει το μάθημα εργαστήρια')
-    piechart3 = px.pie(dff, names='q2b_attendslabs', hole=.0, title='Παρακολουθεί τα εργαστήρια')
-    barchart4 = px.bar(dff, x="q3_cleargoalslectures", title="Επιτυγχάνει τους στόχους στις διαλέξεις")
-    barchart5 = px.bar(dff, x="q4_cleargoalslabs", title="Επιτυγχάνει τους στόχους στα εργαστήρια")
-    barchart6 = px.bar(dff, x="q5_studymaterial", title="Υλικό μαθήματος")
-    barchart7 = px.bar(dff, x="q6_tutorinteresting", title="Είναι ενδιαφέρων ο/η καθηγητής/τρια")
-    barchart8 = px.bar(dff, x="q7_tutorquestions", title="Απαντάει σε ερωτήσεις")
-    barchart9 = px.bar(dff, x="q8_tutorreachable", title="Είναι εύκολα προσβάσιμος/η")
-    barchart10 = px.bar(dff, x="q9_tutorexplains", title="Εξηγεί καλά")
-    barchart11 = px.bar(dff, x="q10_tutorontime", title="Είναι στην ώρα του")
-    piechart12 = px.pie(dff, names='q11_hasassistant', hole=.0, title='Έχει βοηθό')
-    barchart13 = px.bar(dff, x="q11b_assistanthelps", title="Κατά πόσο ο βοηθός βοηθάει")
-    barchart14 = px.bar(dff, x="q12_materialcovered", title="Καλύπτεται το υλικό")
-    barchart15 = px.bar(dff, x="q13_tutororganised", title="Είναι οργανωμένος/η")
-    barchart16 = px.bar(dff, x="q14_evaluationcriteria", title="Κριτήρια αξιολόγησης")
-
-    mean_df = df[(df['courseid'] == courseid)]
-    barchart17 = px.line(mean_df[config.median_columns_plus_year].groupby(['qyear']).mean(), y=median_column,
-                         title="Μέσος όρος ανά χρονιά")
-
-    return piechart1, piechart2, piechart3, barchart4, barchart5, barchart6, barchart7, barchart8, barchart9, \
-           barchart10, barchart11, piechart12, barchart13, barchart14, barchart15, barchart16, barchart17
+def third_tab(courseid, syear):
+    third_tab_df = df[(df['courseid'] == courseid) & (df['qyear'] == syear)]
+    barchart1 = px.bar(third_tab_df, x="q6_tutorinteresting", title="Είναι ενδιαφέρων ο/η καθηγητής/τρια")
+    barchart2 = px.bar(third_tab_df, x="q7_tutorquestions", title="Απαντάει σε ερωτήσεις")
+    barchart3 = px.bar(third_tab_df, x="q8_tutorreachable", title="Είναι εύκολα προσβάσιμος/η")
+    barchart4 = px.bar(third_tab_df, x="q9_tutorexplains", title="Εξηγεί καλά")
+    barchart5 = px.bar(third_tab_df, x="q10_tutorontime", title="Είναι στην ώρα του")
+    piechart = px.pie(third_tab_df.dropna(subset=['q11_hasassistant']), names='q11_hasassistant', hole=.0, title='Έχει βοηθό')
+    barchart6 = px.bar(third_tab_df, x="q11b_assistanthelps", title="Κατά πόσο ο βοηθός βοηθάει")
+    barchart7 = px.bar(third_tab_df, x="q13_tutororganised", title="Είναι οργανωμένος/η")
+    return barchart1, barchart2, barchart3, barchart4, barchart5, piechart, barchart6, barchart7
 
 
 @app.callback(
-    dash.dependencies.Output('datatable', 'data'),
+    dash.dependencies.Output('graph-median', 'figure'),
     [dash.dependencies.Input('course-dropdown', 'value'),
-     dash.dependencies.Input('year-dropdown', 'value')])
-def comment_table(courseid, syear):
-    data_df = df[(df['courseid'] == courseid) & (df['qyear'] == syear)]
-    return data_df.dropna(subset=['opencomments']).to_dict('records')
+     dash.dependencies.Input('median-column', 'value')])
+def fourth_tab(courseid, median_column):
+    fourth_tab_df = df[(df['courseid'] == courseid)]
+    barchart = px.line(fourth_tab_df[config.mean_columns_plus_year].groupby(['qyear']).mean(), y=median_column,
+                       title="Μέσος όρος ανά χρονιά")
+    return barchart
 
 
 @app.callback(
     dash.dependencies.Output('year-rank-table', 'data'),
     [dash.dependencies.Input('year-dropdown', 'value')])
-def year_list(syear):
-    year_medians = df[(df['qyear'] == syear)]
-    year_medians['Mean'] = year_medians.loc[:, config.median_columns].mean(axis=1, skipna=True)
+def fifth_tab(syear):
+    fifth_tab_df = df[(df['qyear'] == syear)]
+    fifth_tab_df['Mean'] = fifth_tab_df.loc[:, config.median_columns].mean(axis=1, skipna=True)
     for name, number in courses:
-        year_medians['courseid'] = year_medians['courseid'].replace(number, name)
-    return year_medians.groupby(['courseid'], as_index=False).mean().sort_values('Mean', ascending=False).to_dict(
+        fifth_tab_df['courseid'] = fifth_tab_df['courseid'].replace(number, name)
+    return fifth_tab_df.groupby(['courseid'], as_index=False).mean().sort_values('Mean', ascending=False).to_dict(
         'records')
-
 
 
 connection.close()
