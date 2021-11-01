@@ -9,7 +9,6 @@ import config
 import numpy as np
 import warnings
 
-
 from credentials import credential
 
 connection = mysql.connector.connect(host=credential.host, database=credential.database, user=credential.user,
@@ -35,9 +34,9 @@ b = np.array([np.NaN, np.NaN, 3])
 with warnings.catch_warnings():
     warnings.filterwarnings('error')
     try:
-        x=np.nanmean(a)
+        x = np.nanmean(a)
     except RuntimeWarning:
-        x=np.NaN
+        x = np.NaN
 print(x)
 
 df = pd.DataFrame(sql_query('select * from evaluation as unp;'), columns=config.columns)
@@ -46,7 +45,6 @@ courses = sql_query('select coursename, courseid from courses as unp;')
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.scripts.config.serve_locally = True
 app.config['suppress_callback_exceptions'] = True
-
 
 app.layout = html.Div([
 
@@ -80,7 +78,11 @@ app.layout = html.Div([
         dcc.Tab(children=[
             dcc.Graph(id='graph-q1_attendslectures', style={'width': '50%'}),
             dcc.Graph(id='graph-q2b_attendslabs', style={'width': '50%'}),
-            dcc.Graph(id='graph-q14_evaluationcriteria', style={'width': '50%'})
+            dcc.Graph(id='graph-q14_evaluationcriteria', style={'width': '50%'}),
+            dash_table.DataTable(
+                id='datatable',
+                columns=[{"name": 'opencomments', "id": 'opencomments'}]
+            )
         ], id='tab1', label='Φοιτητής'),
         dcc.Tab(children=[
             dcc.Graph(id='graph-q2_coursehaslabs', style={'width': '50%'}),
@@ -112,24 +114,19 @@ app.layout = html.Div([
             ),
 
             dcc.Graph(id='graph-median', style={'width': '50%'})
-        ], id='tab4', label='Πορεία μαθήματος')
+        ], id='tab4', label='Πορεία μαθήματος'),
+
+        dcc.Tab(children=[
+            dash_table.DataTable(
+                id='year-rank-table',
+                columns=[{'name': 'Course', 'id': 'courseid'}, {'name': 'Mean', 'id': 'Mean'}],
+                style_cell=dict(textAlign='left'),
+                style_header=dict(backgroundColor="paleturquoise"),
+                style_data=dict(backgroundColor="lavender")
+            )
+        ], id='tab5', label='Κατάταξη')
     ]),
-    html.Div(id='tabs'),
-
-    dash_table.DataTable(
-        id='datatable',
-        columns=[{"name": 'opencomments', "id": 'opencomments'}]
-    ),
-    html.Div(id='datatable-output'),
-
-    dash_table.DataTable(
-        id='rank-table',
-        columns=[{"name": 'Course', "id": 'courseid'}, {"name": 'Mean', "id": 'Mean'}],
-        style_cell=dict(textAlign='left'),
-        style_header=dict(backgroundColor="paleturquoise"),
-        style_data=dict(backgroundColor="lavender")
-    ),
-    html.Div(id='rank-table-output')
+    html.Div(id='tabs')
 
 ])
 
@@ -192,13 +189,16 @@ def comment_table(courseid, syear):
 
 
 @app.callback(
-    dash.dependencies.Output('rank-table', 'data'),
+    dash.dependencies.Output('year-rank-table', 'data'),
     [dash.dependencies.Input('year-dropdown', 'value')])
 def year_list(syear):
     year_medians = df[(df['qyear'] == syear)]
     year_medians['Mean'] = year_medians.loc[:, config.median_columns].mean(axis=1, skipna=True)
-    print(year_medians.groupby(['courseid']).mean().sort_values('Mean', ascending=False))
-    return year_medians.groupby(['courseid']).mean().sort_values('Mean', ascending=False).to_dict('records')
+    for name, number in courses:
+        year_medians['courseid'] = year_medians['courseid'].replace(number, name)
+    return year_medians.groupby(['courseid'], as_index=False).mean().sort_values('Mean', ascending=False).to_dict(
+        'records')
+
 
 
 connection.close()
