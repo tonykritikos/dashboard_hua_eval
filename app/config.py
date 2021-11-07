@@ -1,4 +1,5 @@
 import datetime
+import textwrap
 
 columns = ['qid', 'qlastpage', 'q1_attendslectures', 'q2_coursehaslabs', 'q2b_attendslabs',
            'q3_cleargoalslectures', 'q4_cleargoalslabs', 'q5_studymaterial',
@@ -8,12 +9,12 @@ columns = ['qid', 'qlastpage', 'q1_attendslectures', 'q2_coursehaslabs', 'q2b_at
            'q12_materialcovered',
            'q13_tutororganised', 'q14_evaluationcriteria', 'opencomments', 'courseid',
            'qyear', 'qseason']
-median_columns = ['q3_cleargoalslectures', 'q4_cleargoalslabs', 'q5_studymaterial',
-                  'q6_tutorinteresting',
-                  'q7_tutorquestions', 'q8_tutorreachable', 'q9_tutorexplains',
-                  'q10_tutorontime', 'q11b_assistanthelps',
-                  'q12_materialcovered',
-                  'q13_tutororganised', 'q14_evaluationcriteria']
+mean_columns = ['q3_cleargoalslectures', 'q4_cleargoalslabs', 'q5_studymaterial',
+                'q6_tutorinteresting',
+                'q7_tutorquestions', 'q8_tutorreachable', 'q9_tutorexplains',
+                'q10_tutorontime', 'q11b_assistanthelps',
+                'q12_materialcovered',
+                'q13_tutororganised', 'q14_evaluationcriteria']
 dict_mean_columns = [("q3_cleargoalslectures",
                       "Ο/η διδάσκων/ουσα σας γνωστοποιεί με σαφήνεια, από την αρχή του εξαμήνου, τους στόχους και το περιεχόμενο του μαθήματος;"),
                      ("q4_cleargoalslabs",
@@ -60,7 +61,8 @@ dict_columns = [('qid', ''),
                  'Ο/η διδάσκων/ουσα είναι συνεπής στις υποχρεώσεις του (παρουσία στα μαθήματα, έγκαιρη διόρθωση εργασιών/ασκήσεων, ώρες συνεργασίας με τους φοιτητές);'),
                 ('q11_hasassistant', 'Το μάθημα έχει επικουρικό διδακτικό προσωπικό;'),
                 (
-                'q11b_assistanthelps', 'Το επικουρικό διδακτικό προσωπικό συμβάλλει στην καλύτερη κατανόηση της ύλης;'),
+                    'q11b_assistanthelps',
+                    'Το επικουρικό διδακτικό προσωπικό συμβάλλει στην καλύτερη κατανόηση της ύλης;'),
                 ('q12_materialcovered',
                  'Το μάθημα συμβάλλει αποτελεσματικά στην ουσιαστική κατανόηση του αντικειμένου και την ανάπτυξη του προβληματισμού σας;'),
                 ('q13_tutororganised', 'Ο/η διδάσκων/ουσα παρουσιάζει οργανωμένα το μάθημα;'),
@@ -75,7 +77,8 @@ dict_columns = [('qid', ''),
                 ('extra1', 'Το μάθημα είναι μάθημα επιλογής;'),
                 ('extra2', 'Για ποιους λόγους επιλέξατε το μάθημα;'),
                 (
-                'extra3', 'Το υλικό που διαθέτει ο/η διδάσκων/ουσα ΗΡΑΚΛΗΣ  ΒΑΡΛΑΜΗΣ στο e-class είναι ικανοποιητικό;'),
+                    'extra3',
+                    'Το υλικό που διαθέτει ο/η διδάσκων/ουσα ΗΡΑΚΛΗΣ  ΒΑΡΛΑΜΗΣ στο e-class είναι ικανοποιητικό;'),
                 ('extra4',
                  'Ο/η διδάσκων/ουσα ΧΡΗΣΤΟΣ ΣΑΡΔΙΑΝΟΣ σας γνωστοποιεί με σαφήνεια, από την αρχή του εξαμήνου, τους στόχους και το περιεχόμενο του μαθήματος;'),
                 ('extra5',
@@ -102,6 +105,19 @@ dict_columns = [('qid', ''),
                 ('tele5', 'Οι διαλέξεις καταγράφονται και έχετε πρόσβαση σε αυτές;'),
                 ('tele6', 'Σε ποιο βαθμό παρακολουθείτε τις online/βιντεοσκοπημένες διαλέξεις;')
                 ]
+
+
+# Iterate titles based on the id so the plots can load them from the config
+# That way, any change can come once through here and not a lot of times in the code
+def titles(lesson_id):
+    for i, y in dict_columns:
+        if i == lesson_id:
+            return '<br>'.join(textwrap.wrap(y))
+
+
+# Labels for the bar charts
+bar_labels = {"value": "Βαθμολογία", "count": "Καταμέτρηση"}
+
 mean_columns_plus_year = ['q3_cleargoalslectures', 'q4_cleargoalslabs', 'q5_studymaterial',
                           'q6_tutorinteresting',
                           'q7_tutorquestions', 'q8_tutorreachable', 'q9_tutorexplains',
@@ -112,4 +128,4 @@ year = int((datetime.datetime.now().strftime('%Y')))
 
 height = 500
 width = 700
-range = [0, 6]
+bar_x_range = [0, 6]
