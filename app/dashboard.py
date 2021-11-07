@@ -64,7 +64,7 @@ app.layout = html.Div([
         value=8,  # Assigned default value so when it loads it instantly shows data
         multi=False,
         clearable=False,
-        style={'width': '80%'}
+        style={'width': '60%'}
     ),
 
     html.Div(id='course-dropdown-output'),
@@ -77,7 +77,7 @@ app.layout = html.Div([
         value=2016,  # Assigned default value so when it loads it instantly shows data
         multi=False,
         clearable=False,
-        style={'width': '80%'}
+        style={'width': '60%'}
     ),
 
     html.Div(id='year-dropdown-output'),
@@ -90,6 +90,9 @@ app.layout = html.Div([
             dash_table.DataTable(
                 id='datatable',
                 columns=[{"name": 'opencomments', "id": 'opencomments'}],
+                style_cell=dict(textAlign='center'),
+                style_header=dict(backgroundColor="paleturquoise"),
+                style_data=dict(backgroundColor="lavender"),
                 style_table={'width': '50%'}
             )
         ], id='tab1', label='Φοιτητής'),
@@ -114,7 +117,7 @@ app.layout = html.Div([
             dcc.Dropdown(
                 id='median-column',  # Inner dropdown - Select column to show the average score
                 options=[
-                    {'label': i, 'value': y} for i, y in config.dict_mean_columns
+                    {'label': i, 'value': y} for y, i in config.dict_mean_columns
                 ],
                 value="q3_cleargoalslectures",  # Assigned default value so when it loads it instantly shows data
                 multi=False,
@@ -129,9 +132,10 @@ app.layout = html.Div([
             dash_table.DataTable(
                 id='year-rank-table',
                 columns=[{'name': 'Course', 'id': 'courseid'}, {'name': 'Mean', 'id': 'Mean'}],
-                style_cell=dict(textAlign='left'),
+                style_cell=dict(textAlign='center'),
                 style_header=dict(backgroundColor="paleturquoise"),
-                style_data=dict(backgroundColor="lavender")
+                style_data=dict(backgroundColor="lavender"),
+                style_table={'width': '70%'}
             )
         ], id='tab5', label='Κατάταξη')
     ]),
@@ -149,10 +153,15 @@ app.layout = html.Div([
      dash.dependencies.Input('year-dropdown', 'value')])
 def first_tab(courseid, syear):
     first_tab_df = df[(df['courseid'] == courseid) & (df['qyear'] == syear)]
-    piechart1 = px.pie(first_tab_df.dropna(subset=['q1_attendslectures']), names='q1_attendslectures', hole=.0, title='Παρακολούθησαν το μάθημα')
-    piechart2 = px.pie(first_tab_df.dropna(subset=['q2b_attendslabs']), names='q2b_attendslabs', hole=.0, title='Παρακολουθεί τα εργαστήρια')
-    barchart = px.bar(first_tab_df['q14_evaluationcriteria'], title="Κριτήρια αξιολόγησης",labels={"value": "Βαθμολογία", "count": "Καταμέτρηση"},range_x=config.range, height=config.height, width=config.width, barmode='relative')
-    return piechart1, piechart2, barchart, first_tab_df.dropna(subset=['opencomments']).to_dict('records')
+    piechart1 = px.pie(first_tab_df.dropna(subset=['q1_attendslectures']), names='q1_attendslectures', hole=.0,
+                       title='Παρακολούθησαν το μάθημα')
+    piechart2 = px.pie(first_tab_df.dropna(subset=['q2b_attendslabs']), names='q2b_attendslabs', hole=.0,
+                       title='Παρακολουθεί τα εργαστήρια')
+    barchart = px.bar(first_tab_df['q14_evaluationcriteria'], title="Κριτήρια αξιολόγησης",
+                      labels={"value": "Βαθμολογία", "count": "Καταμέτρηση"}, range_x=config.range,
+                      height=config.height, width=config.width, barmode='relative')
+    return piechart1, piechart2, barchart.update_layout(showlegend=False), first_tab_df.dropna(
+        subset=['opencomments']).to_dict('records')
 
 
 @app.callback(
@@ -165,12 +174,22 @@ def first_tab(courseid, syear):
      dash.dependencies.Input('year-dropdown', 'value')])
 def second_tab(courseid, syear):
     second_tab_df = df[(df['courseid'] == courseid) & (df['qyear'] == syear)]
-    piechart = px.pie(second_tab_df.dropna(subset=['q2_coursehaslabs']), names='q2_coursehaslabs', hole=.0, title='Έχει το μάθημα εργαστήρια')
-    barchart1 = px.bar(second_tab_df, x="q3_cleargoalslectures", title="Επιτυγχάνει τους στόχους στις διαλέξεις")
-    barchart2 = px.bar(second_tab_df, x="q4_cleargoalslabs", title="Επιτυγχάνει τους στόχους στα εργαστήρια")
-    barchart3 = px.bar(second_tab_df, x="q5_studymaterial", title="Υλικό μαθήματος")
-    barchart4 = px.bar(second_tab_df, x="q12_materialcovered", title="Καλύπτεται το υλικό")
-    return piechart, barchart1, barchart2, barchart3, barchart4
+    piechart = px.pie(second_tab_df.dropna(subset=['q2_coursehaslabs']), names='q2_coursehaslabs', hole=.0,
+                      title='Έχει το μάθημα εργαστήρια')
+    barchart1 = px.bar(second_tab_df['q3_cleargoalslectures'], title="Επιτυγχάνει τους στόχους στις διαλέξεις",
+                       labels={"value": "Βαθμολογία", "count": "Καταμέτρηση"}, range_x=config.range,
+                       height=config.height, width=config.width, barmode='relative')
+    barchart2 = px.bar(second_tab_df['q4_cleargoalslabs'], title="Επιτυγχάνει τους στόχους στα εργαστήρια",
+                       labels={"value": "Βαθμολογία", "count": "Καταμέτρηση"}, range_x=config.range,
+                       height=config.height, width=config.width, barmode='relative')
+    barchart3 = px.bar(second_tab_df['q5_studymaterial'], title="Υλικό μαθήματος",
+                       labels={"value": "Βαθμολογία", "count": "Καταμέτρηση"}, range_x=config.range,
+                       height=config.height, width=config.width, barmode='relative')
+    barchart4 = px.bar(second_tab_df['q12_materialcovered'], title="Καλύπτεται το υλικό",
+                       labels={"value": "Βαθμολογία", "count": "Καταμέτρηση"}, range_x=config.range,
+                       height=config.height, width=config.width, barmode='relative')
+    return piechart, barchart1.update_layout(showlegend=False), barchart2.update_layout(
+        showlegend=False), barchart3.update_layout(showlegend=False), barchart4.update_layout(showlegend=False)
 
 
 @app.callback(
@@ -186,15 +205,33 @@ def second_tab(courseid, syear):
      dash.dependencies.Input('year-dropdown', 'value')])
 def third_tab(courseid, syear):
     third_tab_df = df[(df['courseid'] == courseid) & (df['qyear'] == syear)]
-    barchart1 = px.bar(third_tab_df, x="q6_tutorinteresting", title="Είναι ενδιαφέρων ο/η καθηγητής/τρια")
-    barchart2 = px.bar(third_tab_df, x="q7_tutorquestions", title="Απαντάει σε ερωτήσεις")
-    barchart3 = px.bar(third_tab_df, x="q8_tutorreachable", title="Είναι εύκολα προσβάσιμος/η")
-    barchart4 = px.bar(third_tab_df, x="q9_tutorexplains", title="Εξηγεί καλά")
-    barchart5 = px.bar(third_tab_df, x="q10_tutorontime", title="Είναι στην ώρα του")
-    piechart = px.pie(third_tab_df.dropna(subset=['q11_hasassistant']), names='q11_hasassistant', hole=.0, title='Έχει βοηθό')
-    barchart6 = px.bar(third_tab_df, x="q11b_assistanthelps", title="Κατά πόσο ο βοηθός βοηθάει")
-    barchart7 = px.bar(third_tab_df, x="q13_tutororganised", title="Είναι οργανωμένος/η")
-    return barchart1, barchart2, barchart3, barchart4, barchart5, piechart, barchart6, barchart7
+    barchart1 = px.bar(third_tab_df['q6_tutorinteresting'], title="Είναι ενδιαφέρων ο/η καθηγητής/τρια",
+                       labels={"value": "Βαθμολογία", "count": "Καταμέτρηση"}, range_x=config.range,
+                       height=config.height, width=config.width, barmode='relative')
+    barchart2 = px.bar(third_tab_df['q7_tutorquestions'], title="Απαντάει σε ερωτήσεις",
+                       labels={"value": "Βαθμολογία", "count": "Καταμέτρηση"}, range_x=config.range,
+                       height=config.height, width=config.width, barmode='relative')
+    barchart3 = px.bar(third_tab_df['q8_tutorreachable'], title="Είναι εύκολα προσβάσιμος/η",
+                       labels={"value": "Βαθμολογία", "count": "Καταμέτρηση"}, range_x=config.range,
+                       height=config.height, width=config.width, barmode='relative')
+    barchart4 = px.bar(third_tab_df['q9_tutorexplains'], title="Εξηγεί καλά",
+                       labels={"value": "Βαθμολογία", "count": "Καταμέτρηση"}, range_x=config.range,
+                       height=config.height, width=config.width, barmode='relative')
+    barchart5 = px.bar(third_tab_df['q10_tutorontime'], title="Είναι στην ώρα του",
+                       labels={"value": "Βαθμολογία", "count": "Καταμέτρηση"}, range_x=config.range,
+                       height=config.height, width=config.width, barmode='relative')
+    piechart = px.pie(third_tab_df.dropna(subset=['q11_hasassistant']), names='q11_hasassistant', hole=.0,
+                      title='Έχει βοηθό')
+    barchart6 = px.bar(third_tab_df['q11b_assistanthelps'], title="Κατά πόσο ο βοηθός βοηθάει",
+                       labels={"value": "Βαθμολογία", "count": "Καταμέτρηση"}, range_x=config.range,
+                       height=config.height, width=config.width, barmode='relative')
+    barchart7 = px.bar(third_tab_df['q13_tutororganised'], title="Είναι οργανωμένος/η",
+                       labels={"value": "Βαθμολογία", "count": "Καταμέτρηση"}, range_x=config.range,
+                       height=config.height, width=config.width, barmode='relative')
+    return barchart1.update_layout(showlegend=False), barchart2.update_layout(
+        showlegend=False), barchart3.update_layout(showlegend=False), barchart4.update_layout(
+        showlegend=False), barchart5.update_layout(showlegend=False), piechart, barchart6, barchart7.update_layout(
+        showlegend=False)
 
 
 @app.callback(
@@ -204,8 +241,9 @@ def third_tab(courseid, syear):
 def fourth_tab(courseid, median_column):
     fourth_tab_df = df[(df['courseid'] == courseid)]
     barchart = px.line(fourth_tab_df[config.mean_columns_plus_year].groupby(['qyear']).mean(), y=median_column,
-                       title="Μέσος όρος ανά χρονιά")
-    return barchart
+                       title="Μέσος όρος ανά χρονιά", labels={"value": "Έτος", "count": "Μέσος όρος"},
+                       height=config.height, width=config.width)
+    return barchart.update_layout(showlegend=False)
 
 
 @app.callback(
