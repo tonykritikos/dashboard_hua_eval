@@ -97,7 +97,7 @@ app.layout = html.Div([
                 style_data={
                     'whiteSpace': 'normal',
                     'height': 'auto'},
-                style_table={'max-width': '50%', 'margin-left': '100vh', 'margin-top': '-65vh','word-wrap': 'break-word'}
+                style_table={'max-width': '50%', 'margin-left': '50%','margin-top': '-65vh','word-wrap': 'break-word'}
             )
         ], id='tab1', label='Φοιτητής'),
         dcc.Tab(children=[  # Second tab - Lesson
@@ -137,8 +137,6 @@ app.layout = html.Div([
                 id='year-rank-table',
                 columns=[{'name': 'Μάθημα', 'id': 'courseid'}, {'name': 'Μέσος Όρος', 'id': 'Mean'}],
                 style_cell=dict(textAlign='center'),
-                style_header=dict(backgroundColor="paleturquoise"),
-                style_data=dict(backgroundColor="lavender"),
                 style_table={'width': '70%', 'display': 'inline-block'}
             )
         ], id='tab5', label='Κατάταξη')
@@ -178,7 +176,7 @@ def first_tab(courseid, syear):
 def second_tab(courseid, syear):
     second_tab_df = df[(df['courseid'] == courseid) & (df['qyear'] == syear)]
     piechart = px.pie(second_tab_df.dropna(subset=['q2_coursehaslabs']), names='q2_coursehaslabs', hole=.0,
-                      title='Το μάθημα έχει εργαστήριο;')
+                      title=config.titles('q2_coursehaslabs'))
     barchart1 = px.bar(second_tab_df['q3_cleargoalslectures'], title=config.titles('q3_cleargoalslectures'),
                        labels=config.bar_labels, range_x=config.bar_x_range,
                        height=config.height, width=config.width, barmode='relative')
