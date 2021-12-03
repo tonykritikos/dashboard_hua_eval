@@ -129,3 +129,4 @@ year = int((datetime.datetime.now().strftime('%Y')))
 height = 500
 width = 700
 bar_x_range = [0, 6]
+bar_y_range = [0, 15]

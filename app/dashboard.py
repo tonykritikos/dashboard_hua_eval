@@ -99,7 +99,7 @@ app.layout = html.Div([
                     'height': 'auto'},
                 style_table={'max-width': '50%', 'margin-left': '50%','margin-top': '-65vh','word-wrap': 'break-word'}
             )
-        ], id='tab1', label='Φοιτητής'),
+        ], id='tab1', label='Φοιτητής/τρια'),
         dcc.Tab(children=[  # Second tab - Lesson
             dcc.Graph(id='graph-q2_coursehaslabs', style={'width': '50%', 'display': 'inline-block'}),
             dcc.Graph(id='graph-q3_cleargoalslectures', style={'width': '50%', 'display': 'inline-block'}),
@@ -116,7 +116,7 @@ app.layout = html.Div([
             dcc.Graph(id='graph-q11_hasassistant', style={'width': '50%', 'display': 'inline-block'}),
             dcc.Graph(id='graph-q11b_assistanthelps', style={'width': '50%', 'display': 'inline-block'}),
             dcc.Graph(id='graph-q13_tutororganised', style={'width': '50%', 'display': 'inline-block'})
-        ], id='tab3', label='Καθηγητής'),
+        ], id='tab3', label='Καθηγητής/τρια'),
         dcc.Tab(children=[  # Fourth tab - Average score per numeric column for the selected lesson through the years
             dcc.Dropdown(
                 id='mean-column',  # Inner dropdown - Select column to show the average score
@@ -160,7 +160,7 @@ def first_tab(courseid, syear):
     piechart2 = px.pie(first_tab_df.dropna(subset=['q2b_attendslabs']), names='q2b_attendslabs', hole=.0,
                        title=config.titles('q2b_attendslabs'))
     barchart = px.bar(first_tab_df['q14_evaluationcriteria'], title=config.titles('q14_evaluationcriteria'),
-                      labels=config.bar_labels, range_x=config.bar_x_range,
+                      labels=config.bar_labels, range_x=config.bar_x_range, range_y=config.bar_y_range,
                       height=config.height, width=config.width, barmode='relative')
     return piechart1, piechart2, barchart.update_layout(showlegend=False), first_tab_df.dropna(subset=['opencomments']).to_dict('records')
 
@@ -178,16 +178,16 @@ def second_tab(courseid, syear):
     piechart = px.pie(second_tab_df.dropna(subset=['q2_coursehaslabs']), names='q2_coursehaslabs', hole=.0,
                       title=config.titles('q2_coursehaslabs'))
     barchart1 = px.bar(second_tab_df['q3_cleargoalslectures'], title=config.titles('q3_cleargoalslectures'),
-                       labels=config.bar_labels, range_x=config.bar_x_range,
+                       labels=config.bar_labels, range_x=config.bar_x_range, range_y=config.bar_y_range,
                        height=config.height, width=config.width, barmode='relative')
     barchart2 = px.bar(second_tab_df['q4_cleargoalslabs'], title=config.titles('q4_cleargoalslabs'),
-                       labels=config.bar_labels, range_x=config.bar_x_range,
+                       labels=config.bar_labels, range_x=config.bar_x_range, range_y=config.bar_y_range,
                        height=config.height, width=config.width, barmode='relative')
     barchart3 = px.bar(second_tab_df['q5_studymaterial'], title=config.titles('q5_studymaterial'),
-                       labels=config.bar_labels, range_x=config.bar_x_range,
+                       labels=config.bar_labels, range_x=config.bar_x_range, range_y=config.bar_y_range,
                        height=config.height, width=config.width, barmode='relative')
     barchart4 = px.bar(second_tab_df['q12_materialcovered'], title=config.titles('q12_materialcovered'),
-                       labels=config.bar_labels, range_x=config.bar_x_range,
+                       labels=config.bar_labels, range_x=config.bar_x_range, range_y=config.bar_y_range,
                        height=config.height, width=config.width, barmode='relative')
     return piechart, barchart1.update_layout(showlegend=False), barchart2.update_layout(
         showlegend=False), barchart3.update_layout(showlegend=False), barchart4.update_layout(showlegend=False)
@@ -207,27 +207,27 @@ def second_tab(courseid, syear):
 def third_tab(courseid, syear):
     third_tab_df = df[(df['courseid'] == courseid) & (df['qyear'] == syear)]
     barchart1 = px.bar(third_tab_df['q6_tutorinteresting'], title=config.titles('q6_tutorinteresting'),
-                       labels=config.bar_labels, range_x=config.bar_x_range,
+                       labels=config.bar_labels, range_x=config.bar_x_range, range_y=config.bar_y_range,
                        height=config.height, width=config.width, barmode='relative')
     barchart2 = px.bar(third_tab_df['q7_tutorquestions'], title=config.titles('q7_tutorquestions'),
-                       labels=config.bar_labels, range_x=config.bar_x_range,
+                       labels=config.bar_labels, range_x=config.bar_x_range, range_y=config.bar_y_range,
                        height=config.height, width=config.width, barmode='relative')
     barchart3 = px.bar(third_tab_df['q8_tutorreachable'], title=config.titles('q8_tutorreachable'),
-                       labels=config.bar_labels, range_x=config.bar_x_range,
+                       labels=config.bar_labels, range_x=config.bar_x_range, range_y=config.bar_y_range,
                        height=config.height, width=config.width, barmode='relative')
     barchart4 = px.bar(third_tab_df['q9_tutorexplains'], title=config.titles('q9_tutorexplains'),
-                       labels=config.bar_labels, range_x=config.bar_x_range,
+                       labels=config.bar_labels, range_x=config.bar_x_range, range_y=config.bar_y_range,
                        height=config.height, width=config.width, barmode='relative')
     barchart5 = px.bar(third_tab_df['q10_tutorontime'], title=config.titles('q10_tutorontime'),
-                       labels=config.bar_labels, range_x=config.bar_x_range,
+                       labels=config.bar_labels, range_x=config.bar_x_range, range_y=config.bar_y_range,
                        height=config.height, width=config.width, barmode='relative')
     piechart = px.pie(third_tab_df.dropna(subset=['q11_hasassistant']), names='q11_hasassistant', hole=.0,
                       title=config.titles('q11_hasassistant'))
     barchart6 = px.bar(third_tab_df['q11b_assistanthelps'], title=config.titles('q11b_assistanthelps'),
-                       labels=config.bar_labels, range_x=config.bar_x_range,
+                       labels=config.bar_labels, range_x=config.bar_x_range, range_y=config.bar_y_range,
                        height=config.height, width=config.width, barmode='relative')
     barchart7 = px.bar(third_tab_df['q13_tutororganised'], title=config.titles('q13_tutororganised'),
-                       labels=config.bar_labels, range_x=config.bar_x_range,
+                       labels=config.bar_labels, range_x=config.bar_x_range, range_y=config.bar_y_range,
                        height=config.height, width=config.width, barmode='relative')
     return barchart1.update_layout(showlegend=False), barchart2.update_layout(
         showlegend=False), barchart3.update_layout(showlegend=False), barchart4.update_layout(
@@ -242,9 +242,9 @@ def third_tab(courseid, syear):
      dash.dependencies.Input('mean-column', 'value')])
 def fourth_tab(courseid, mean_column):
     fourth_tab_df = df[(df['courseid'] == courseid)]
-    barchart = px.line(fourth_tab_df[config.mean_columns_plus_year].groupby(['qyear']).mean(), y=mean_column,
+    linechart = px.line(fourth_tab_df[config.mean_columns_plus_year].groupby(['qyear']).mean(), y=mean_column,
                        title="Μέσος όρος", height=config.height, width=config.width)
-    return barchart.update_xaxes(dtick=1).update_layout(xaxis_title="Έτος", yaxis_title="Μέσος όρος", showlegend=False)
+    return linechart.update_xaxes(dtick=1).update_layout(xaxis_title="Έτος", yaxis_title="Μέσος όρος", showlegend=False)
 
 
 @app.callback(
