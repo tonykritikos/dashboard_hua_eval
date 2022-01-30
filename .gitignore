@@ -1,1 +1,9 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+# My ignored files
 credentials.py
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
